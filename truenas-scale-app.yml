@@ -9,7 +9,7 @@ services:
     container_name: all-in-one-pwa
     restart: unless-stopped
     ports:
-      - "3000:3000"  # Change the first number (host port) if needed
+      - "18988:3000"  # Change the first number (host port) if needed
     environment:
       - NODE_ENV=production
       - PORT=3000

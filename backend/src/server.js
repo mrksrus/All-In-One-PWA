@@ -25,8 +25,11 @@ const app = express();
 
 // Middleware
 // CORS allows the frontend to make requests to the backend
+// If CORS_ORIGIN is set to "*" or "true", allow all origins
 app.use(cors({
-  origin: config.corsOrigin,
+  origin: (config.corsOrigin === '*' || config.corsOrigin === 'true') 
+    ? true 
+    : config.corsOrigin,
   credentials: true,
 }));
 

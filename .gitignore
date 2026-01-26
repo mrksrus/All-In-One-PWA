@@ -15,7 +15,10 @@ data/
 
 # Secrets (NEVER commit these!)
 **/secrets.env
-**/*secrets*
+# Ignore secret data files, but allow secrets.js (the utility code file)
+**/data/secrets*
+**/*.secrets
+!backend/src/utils/secrets.js
 
 # Build outputs
 dist/

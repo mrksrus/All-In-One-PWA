@@ -1,0 +1,153 @@
+.backup-screen {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+  padding: var(--spacing-md);
+  background: var(--surface);
+}
+
+.backup-card {
+  background: white;
+  border: 2px solid var(--error);
+  border-radius: var(--radius-lg);
+  padding: var(--spacing-xl);
+  max-width: 700px;
+  width: 100%;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.backup-header {
+  text-align: center;
+  margin-bottom: var(--spacing-xl);
+}
+
+.backup-header h1 {
+  color: var(--error);
+  margin-bottom: var(--spacing-md);
+}
+
+.backup-subtitle {
+  font-size: 1.125rem;
+  color: var(--text);
+}
+
+.backup-warning {
+  background: #fff3cd;
+  border: 1px solid #ffc107;
+  border-radius: var(--radius-md);
+  padding: var(--spacing-lg);
+  margin-bottom: var(--spacing-lg);
+}
+
+.backup-warning h3 {
+  margin-bottom: var(--spacing-md);
+  color: #856404;
+}
+
+.backup-warning ul {
+  margin-left: var(--spacing-lg);
+  color: #856404;
+}
+
+.backup-warning li {
+  margin-bottom: var(--spacing-xs);
+}
+
+.backup-info {
+  background: var(--surface);
+  border-radius: var(--radius-md);
+  padding: var(--spacing-lg);
+  margin-bottom: var(--spacing-lg);
+}
+
+.backup-info h3 {
+  margin-bottom: var(--spacing-md);
+}
+
+.backup-path {
+  font-family: monospace;
+  background: white;
+  padding: var(--spacing-sm);
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border);
+  margin: var(--spacing-md) 0;
+  word-break: break-all;
+}
+
+.backup-note {
+  color: var(--text-light);
+  font-size: 0.875rem;
+  margin-top: var(--spacing-sm);
+}
+
+.backup-actions {
+  text-align: center;
+  margin-bottom: var(--spacing-lg);
+}
+
+.btn-large {
+  padding: var(--spacing-md) var(--spacing-xl);
+  font-size: 1.125rem;
+}
+
+.backup-download-note {
+  margin-top: var(--spacing-md);
+  color: var(--text-light);
+  font-size: 0.875rem;
+}
+
+.backup-acknowledge {
+  background: var(--surface);
+  border-radius: var(--radius-md);
+  padding: var(--spacing-lg);
+  margin-bottom: var(--spacing-lg);
+}
+
+.backup-acknowledge label {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--spacing-md);
+  cursor: pointer;
+}
+
+.backup-acknowledge input[type="checkbox"] {
+  width: auto;
+  margin-top: 4px;
+  cursor: pointer;
+}
+
+.backup-acknowledge span {
+  flex: 1;
+  line-height: 1.6;
+}
+
+.backup-continue {
+  text-align: center;
+  margin-bottom: var(--spacing-lg);
+}
+
+.backup-continue button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.backup-help {
+  background: var(--surface);
+  border-radius: var(--radius-md);
+  padding: var(--spacing-lg);
+  margin-top: var(--spacing-lg);
+}
+
+.backup-help h4 {
+  margin-bottom: var(--spacing-md);
+}
+
+.backup-help ul {
+  margin-left: var(--spacing-lg);
+  margin-top: var(--spacing-md);
+}
+
+.backup-help li {
+  margin-bottom: var(--spacing-xs);
+}

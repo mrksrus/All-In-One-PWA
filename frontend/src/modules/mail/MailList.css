@@ -1,0 +1,50 @@
+.mail-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-sm);
+}
+
+.mail-item {
+  padding: var(--spacing-md);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.mail-item:hover {
+  background: var(--surface);
+}
+
+.mail-item.unread {
+  border-left: 3px solid var(--primary-color);
+  font-weight: 500;
+}
+
+.mail-item-header {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: var(--spacing-xs);
+}
+
+.mail-date {
+  color: var(--text-light);
+  font-size: 0.875rem;
+}
+
+.mail-subject {
+  font-weight: 600;
+  margin-bottom: var(--spacing-xs);
+}
+
+.mail-preview {
+  color: var(--text-light);
+  font-size: 0.875rem;
+}
+
+.mail-loading,
+.no-messages {
+  text-align: center;
+  padding: var(--spacing-xl);
+  color: var(--text-light);
+}

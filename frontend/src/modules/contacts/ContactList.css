@@ -1,0 +1,55 @@
+.contact-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-md);
+}
+
+.contact-item {
+  background: white;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: var(--spacing-lg);
+}
+
+.contact-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: var(--spacing-md);
+  padding-bottom: var(--spacing-md);
+  border-bottom: 1px solid var(--border);
+}
+
+.contact-header h3 {
+  margin: 0;
+}
+
+.contact-actions {
+  display: flex;
+  gap: var(--spacing-sm);
+}
+
+.contact-section {
+  margin-bottom: var(--spacing-md);
+}
+
+.contact-section:last-child {
+  margin-bottom: 0;
+}
+
+.contact-link {
+  display: block;
+  color: var(--primary-color);
+  margin-top: var(--spacing-xs);
+}
+
+.contact-link:hover {
+  text-decoration: underline;
+}
+
+.no-contacts {
+  text-align: center;
+  color: var(--text-light);
+  font-style: italic;
+  padding: var(--spacing-xl);
+}

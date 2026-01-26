@@ -1,0 +1,12 @@
+.dashboard {
+  padding: var(--spacing-lg);
+}
+
+.dashboard h1 {
+  margin-bottom: var(--spacing-sm);
+}
+
+.dashboard-subtitle {
+  color: var(--text-light);
+  margin-bottom: var(--spacing-xl);
+}

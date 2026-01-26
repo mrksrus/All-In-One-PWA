@@ -1,0 +1,21 @@
+.contacts-container {
+  padding: var(--spacing-lg);
+}
+
+.contacts-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: var(--spacing-lg);
+  flex-wrap: wrap;
+  gap: var(--spacing-md);
+}
+
+.contacts-search {
+  margin-bottom: var(--spacing-lg);
+}
+
+.contacts-search input {
+  width: 100%;
+  max-width: 400px;
+}

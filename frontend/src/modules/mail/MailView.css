@@ -1,0 +1,32 @@
+.mail-view {
+  max-width: 100%;
+}
+
+.mail-view-header {
+  margin-top: var(--spacing-lg);
+  padding-bottom: var(--spacing-md);
+  border-bottom: 1px solid var(--border);
+  margin-bottom: var(--spacing-lg);
+}
+
+.mail-view-header h2 {
+  margin-bottom: var(--spacing-md);
+}
+
+.mail-view-meta {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-xs);
+  font-size: 0.875rem;
+  color: var(--text-light);
+}
+
+.mail-view-body {
+  margin-top: var(--spacing-lg);
+  line-height: 1.8;
+}
+
+.mail-view-body pre {
+  white-space: pre-wrap;
+  font-family: inherit;
+}

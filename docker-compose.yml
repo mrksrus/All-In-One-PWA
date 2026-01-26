@@ -1,0 +1,49 @@
+version: '3.8'
+
+services:
+  # Backend API service
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: all-in-one-backend
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=production
+      - PORT=3000
+      # Secrets are auto-generated on first run and stored in /data/secrets.env
+      # Can be overridden with environment variables if needed
+      - JWT_SECRET=${JWT_SECRET:-}
+      - JWT_REFRESH_SECRET=${JWT_REFRESH_SECRET:-}
+      - DB_PATH=/data/database.sqlite
+      - CORS_ORIGIN=${CORS_ORIGIN:-http://localhost}
+      - ENCRYPTION_KEY=${ENCRYPTION_KEY:-}
+    volumes:
+      # Persistent volume for all data (database, secrets, future: email attachments, uploads)
+      - ./data:/data
+    restart: unless-stopped
+    networks:
+      - app-network
+
+  # Frontend PWA service
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: all-in-one-frontend
+    ports:
+      - "80:80"
+    depends_on:
+      - backend
+    restart: unless-stopped
+    networks:
+      - app-network
+
+networks:
+  app-network:
+    driver: bridge
+
+volumes:
+  data:
+    driver: local

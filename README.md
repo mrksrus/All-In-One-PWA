@@ -2,6 +2,17 @@
 
 A minimal, modular, self-hosted personal data platform that runs entirely on your own server.
 
+!!! WARNING !!!
+
+This Code was 100% AI generated!
+
+I have 0 coding and web-development experience, and even less security experience. 
+
+App may be complete security failure and I would not even know it. Im just testing things and seeing how they look. 
+
+And soon I'll replace Microsoft.
+
+!!! WARNING !!!
 ## 🎯 Core Principles
 
 - **100% Self-Hosted** - No cloud services, no external dependencies

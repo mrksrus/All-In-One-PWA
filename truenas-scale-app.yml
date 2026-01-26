@@ -2,7 +2,6 @@
 # Use this YAML in the "Custom App" wizard or paste into the YAML editor
 # This is a simplified version for TrueNAS Scale's Docker-based app system
 
-version: '3.8'
 
 services:
   all-in-one-pwa:
@@ -15,7 +14,7 @@ services:
       - NODE_ENV=production
       - PORT=3000
       - DB_PATH=/data/database.sqlite
-      - CORS_ORIGIN=http://localhost  # Update to your TrueNAS Scale IP/domain
+      - CORS_ORIGIN=*  # Update to your TrueNAS Scale IP/domain
       # Secrets are auto-generated on first run, but you can set them here:
       # - JWT_SECRET=your-secret-here
       # - JWT_REFRESH_SECRET=your-refresh-secret-here

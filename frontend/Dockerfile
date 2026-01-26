@@ -27,10 +27,11 @@ FROM nginx:alpine
 # Copy built files from builder stage
 COPY --from=builder /app/dist /usr/share/nginx/html
 
-# Copy nginx configuration (optional - nginx default works for SPA)
-# Create a basic nginx config for SPA routing
+# Create nginx configuration template
+# nginx:alpine automatically processes .template files in /etc/nginx/templates/
+# Use environment variables: FRONTEND_PORT (default 80) and BACKEND_PORT (default 3000)
 RUN echo 'server { \
-    listen 80; \
+    listen ${FRONTEND_PORT:-80}; \
     server_name localhost; \
     root /usr/share/nginx/html; \
     index index.html; \
@@ -38,7 +39,7 @@ RUN echo 'server { \
         try_files $uri $uri/ /index.html; \
     } \
     location /api { \
-        proxy_pass http://backend:3000; \
+        proxy_pass http://backend:${BACKEND_PORT:-3000}; \
         proxy_http_version 1.1; \
         proxy_set_header Upgrade $http_upgrade; \
         proxy_set_header Connection "upgrade"; \
@@ -47,10 +48,10 @@ RUN echo 'server { \
         proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for; \
         proxy_set_header X-Forwarded-Proto $scheme; \
     } \
-}' > /etc/nginx/conf.d/default.conf
+}' > /etc/nginx/templates/default.conf.template
 
-# Expose port
+# Expose port (default 80, can be overridden via FRONTEND_PORT env var)
 EXPOSE 80
 
-# Start nginx
-CMD ["nginx", "-g", "daemon off;"]
+# nginx:alpine entrypoint automatically processes templates
+# No need to override CMD - uses default nginx entrypoint

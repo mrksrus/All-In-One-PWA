@@ -8,10 +8,14 @@ services:
       dockerfile: Dockerfile
     container_name: all-in-one-backend
     ports:
-      - "3000:3000"
+      # Format: "HOST_PORT:CONTAINER_PORT"
+      # Change BACKEND_HOST_PORT in .env file to change the host port
+      - "${BACKEND_HOST_PORT:-17988}:${BACKEND_CONTAINER_PORT:-3000}"
     environment:
       - NODE_ENV=production
-      - PORT=3000
+      # Backend container port - change BACKEND_CONTAINER_PORT in .env if needed
+      # Also update BACKEND_PORT in frontend service to match
+      - PORT=${BACKEND_CONTAINER_PORT:-3000}
       # Secrets are auto-generated on first run and stored in /data/secrets.env
       # Can be overridden with environment variables if needed
       - JWT_SECRET=${JWT_SECRET:-}
@@ -33,7 +37,14 @@ services:
       dockerfile: Dockerfile
     container_name: all-in-one-frontend
     ports:
-      - "80:80"
+      # Format: "HOST_PORT:CONTAINER_PORT"
+      # Change FRONTEND_HOST_PORT in .env file to change the host port
+      - "${FRONTEND_HOST_PORT:-80}:${FRONTEND_CONTAINER_PORT:-80}"
+    environment:
+      # Frontend nginx port (must match container port in ports mapping above)
+      - FRONTEND_PORT=${FRONTEND_CONTAINER_PORT:-80}
+      # Backend service port (must match backend PORT env var)
+      - BACKEND_PORT=${BACKEND_CONTAINER_PORT:-3000}
     depends_on:
       - backend
     restart: unless-stopped

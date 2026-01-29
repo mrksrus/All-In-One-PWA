@@ -50,7 +50,9 @@ function Register() {
       // Setup 2FA using initial endpoint (no auth required - uses username/password)
       const setup = await authAPI.setup2FAInitial(username, password);
       setTwoFactorSetup(setup);
+      setLoading(false); // Reset loading state after successful 2FA setup
     } catch (err) {
+      console.error('Registration error:', err);
       setError(err.message || 'Registration failed');
       setLoading(false);
     }

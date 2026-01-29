@@ -50,7 +50,14 @@ async function registerUser(username, email, password) {
   return new Promise(async (resolve, reject) => {
     // Check if this is the first user (becomes admin)
     const adminExists = await hasAdmin();
-    const isAdmin = !adminExists; // First user becomes admin
+    
+    // If admin already exists, prevent registration
+    if (adminExists) {
+      reject(new Error('Registration is closed. An admin account already exists.'));
+      return;
+    }
+    
+    const isAdmin = true; // First user becomes admin
     
     // Hash password before storing
     hashPassword(password).then((passwordHash) => {
@@ -68,6 +75,8 @@ async function registerUser(username, email, password) {
             }
             return;
           }
+          
+          console.log(`User registered: ${username} (ID: ${this.lastID}, Admin: ${isAdmin})`);
           
           // Return user without password
           resolve({
@@ -125,10 +134,23 @@ async function loginUser(username, password, twoFactorCode, deviceId) {
             return;
           }
           
+          // Ensure 2FA secret exists
+          if (!user.two_factor_secret) {
+            console.error(`User ${user.id} has 2FA enabled but no secret stored`);
+            reject(new Error('2FA configuration error. Please contact support.'));
+            return;
+          }
+          
           // Verify 2FA code
-          const twoFactorValid = verifyToken(user.two_factor_secret, twoFactorCode);
-          if (!twoFactorValid) {
-            reject(new Error('Invalid 2FA code'));
+          try {
+            const twoFactorValid = verifyToken(user.two_factor_secret, twoFactorCode);
+            if (!twoFactorValid) {
+              reject(new Error('Invalid 2FA code'));
+              return;
+            }
+          } catch (verifyError) {
+            console.error('Error verifying 2FA code during login:', verifyError);
+            reject(new Error('Error verifying 2FA code. Please try again.'));
             return;
           }
         } else {
@@ -232,11 +254,13 @@ async function setup2FAInitial(username, password) {
       [username, username],
       async (err, user) => {
         if (err) {
-          reject(err);
+          console.error('Database error finding user for 2FA setup:', err);
+          reject(new Error('Database error. Please try again.'));
           return;
         }
         
         if (!user) {
+          console.error(`User not found or 2FA already enabled: ${username}`);
           reject(new Error('User not found or 2FA already enabled'));
           return;
         }
@@ -244,6 +268,7 @@ async function setup2FAInitial(username, password) {
         // Verify password
         const passwordValid = await verifyPassword(password, user.password_hash);
         if (!passwordValid) {
+          console.error(`Invalid password for user: ${username}`);
           reject(new Error('Invalid username or password'));
           return;
         }
@@ -251,16 +276,20 @@ async function setup2FAInitial(username, password) {
         // Generate 2FA secret
         const { secret, qrCode } = await generateSecret(user.username);
         
+        console.log(`Generated 2FA secret for user ${user.id} (${username})`);
+        
         // Store secret in database (but don't enable yet)
         db.run(
           'UPDATE users SET two_factor_secret = ? WHERE id = ?',
           [secret, user.id],
           (err) => {
             if (err) {
-              reject(err);
+              console.error('Error storing 2FA secret:', err);
+              reject(new Error('Failed to store 2FA secret. Please try again.'));
               return;
             }
             
+            console.log(`2FA secret stored successfully for user ${user.id}`);
             resolve({ secret, qrCode });
           }
         );
@@ -335,11 +364,13 @@ async function verifyAndEnable2FAInitial(username, password, code) {
       [username, username],
       async (err, user) => {
         if (err) {
-          reject(err);
+          console.error('Database error finding user for 2FA verification:', err);
+          reject(new Error('Database error. Please try again.'));
           return;
         }
         
         if (!user) {
+          console.error(`User not found or 2FA already enabled: ${username}`);
           reject(new Error('User not found or 2FA already enabled'));
           return;
         }
@@ -347,12 +378,14 @@ async function verifyAndEnable2FAInitial(username, password, code) {
         // Verify password
         const passwordValid = await verifyPassword(password, user.password_hash);
         if (!passwordValid) {
+          console.error(`Invalid password for user: ${username}`);
           reject(new Error('Invalid username or password'));
           return;
         }
         
         // Check if 2FA secret exists
         if (!user.two_factor_secret) {
+          console.error(`2FA secret not found for user: ${user.id} (${username})`);
           reject(new Error('2FA secret not found. Please setup 2FA first.'));
           return;
         }
@@ -365,12 +398,16 @@ async function verifyAndEnable2FAInitial(username, password, code) {
         
         // Verify code
         try {
+          console.log(`Verifying 2FA code for user ${user.id} (${username})`);
           const isValid = verifyToken(user.two_factor_secret, code);
           
           if (!isValid) {
+            console.error(`Invalid 2FA code provided for user: ${user.id}`);
             reject(new Error('Invalid 2FA code. Please check your authenticator app and try again.'));
             return;
           }
+          
+          console.log(`2FA code verified successfully for user ${user.id}`);
         } catch (verifyError) {
           console.error('Error verifying 2FA code:', verifyError);
           reject(new Error('Error verifying 2FA code. Please try again.'));
@@ -384,11 +421,11 @@ async function verifyAndEnable2FAInitial(username, password, code) {
           (err) => {
             if (err) {
               console.error('Error enabling 2FA:', err);
-              reject(err);
+              reject(new Error('Failed to enable 2FA. Please try again.'));
               return;
             }
             
-            console.log(`2FA enabled successfully for user ${user.id}`);
+            console.log(`2FA enabled successfully for user ${user.id} (${username})`);
             resolve(true);
           }
         );

@@ -51,18 +51,76 @@ app.use('/api/mail', mailRoutes);
 // This allows the same server to serve both API and frontend
 const publicPath = path.join(__dirname, '../../public');
 const fs = require('fs');
+
+// Debug logging
+console.log('Checking for public directory at:', publicPath);
+console.log('Public directory exists:', fs.existsSync(publicPath));
+console.log('Current __dirname:', __dirname);
+console.log('Current working directory:', process.cwd());
+
 if (fs.existsSync(publicPath)) {
+  const indexPath = path.join(publicPath, 'index.html');
+  console.log('Checking for index.html at:', indexPath);
+  console.log('index.html exists:', fs.existsSync(indexPath));
+  
+  // List files in public directory for debugging
+  try {
+    const files = fs.readdirSync(publicPath);
+    console.log('Files in public directory:', files.slice(0, 10)); // Show first 10 files
+  } catch (err) {
+    console.error('Error reading public directory:', err);
+  }
+  
   // Serve static files (JS, CSS, images, etc.)
-  app.use(express.static(publicPath));
+  // Use express.static with index option to serve index.html for root
+  app.use(express.static(publicPath, {
+    index: 'index.html'
+  }));
+  
+  // Explicitly handle root path to ensure index.html is served
+  app.get('/', (req, res) => {
+    const indexPath = path.join(publicPath, 'index.html');
+    if (fs.existsSync(indexPath)) {
+      res.sendFile(indexPath);
+    } else {
+      res.status(404).send('Frontend index.html not found.');
+    }
+  });
   
   // For React Router: all non-API routes should serve index.html
-  // This must come before error handler but after API routes
+  // This catch-all must come AFTER static middleware but BEFORE error handler
   app.get('*', (req, res, next) => {
-    // Don't serve index.html for API routes
+    // Skip API routes - let error handler deal with 404
     if (req.path.startsWith('/api')) {
-      return next(); // Let error handler deal with 404
+      return next();
     }
-    res.sendFile(path.join(publicPath, 'index.html'));
+    
+    // For all other routes, serve index.html (React Router handles routing)
+    const indexPath = path.join(publicPath, 'index.html');
+    if (fs.existsSync(indexPath)) {
+      res.sendFile(indexPath, (err) => {
+        if (err) {
+          console.error('Error sending index.html:', err);
+          next(err);
+        }
+      });
+    } else {
+      console.error('index.html not found at:', indexPath);
+      res.status(404).send('Frontend not found. Please rebuild the Docker image.');
+    }
+  });
+} else {
+  console.error('Public directory not found at:', publicPath);
+  console.error('This means the frontend was not built or copied correctly.');
+  
+  // Fallback: serve a helpful error message
+  app.get('/', (req, res) => {
+    res.status(500).send(`
+      <h1>Frontend Not Found</h1>
+      <p>The public directory was not found at: ${publicPath}</p>
+      <p>Please ensure the Docker image was built correctly with the frontend build output.</p>
+      <p>Check Docker logs for more information.</p>
+    `);
   });
 }
 

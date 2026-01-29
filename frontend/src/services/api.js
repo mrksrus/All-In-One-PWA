@@ -66,16 +66,23 @@ async function apiRequest(endpoint, options = {}) {
     headers['Authorization'] = `Bearer ${accessToken}`;
   }
   
+  // Build request config
   const config = {
-    ...options,
+    method: options.method || 'GET',
     headers,
+    credentials: 'include', // Include cookies/credentials for CORS
   };
+  
+  // Add body if provided (for POST, PUT, etc.)
+  if (options.body) {
+    config.body = options.body;
+  }
   
   try {
     const response = await fetch(url, config);
     
     // Handle 401 (unauthorized) - try to refresh token
-    if (response.status === 401 && refreshToken && endpoint !== '/auth/refresh') {
+    if (response.status === 401 && refreshToken && endpoint !== '/auth/refresh' && endpoint !== '/auth/refresh-initial') {
       try {
         const newTokens = await refreshAccessToken();
         if (newTokens) {
@@ -87,14 +94,25 @@ async function apiRequest(endpoint, options = {}) {
       } catch (error) {
         // Refresh failed - user needs to login again
         clearTokens();
-        window.location.href = '/login';
+        // Don't redirect on auth endpoints (register, login, etc.)
+        if (!endpoint.startsWith('/auth/register') && !endpoint.startsWith('/auth/login')) {
+          window.location.href = '/login';
+        }
         throw new Error('Session expired. Please login again.');
       }
     }
     
     return await handleResponse(response);
   } catch (error) {
+    // Handle network errors (CORS, connection refused, etc.)
+    if (error.name === 'TypeError' && error.message.includes('fetch')) {
+      throw new Error('Network error: Unable to connect to server. Please check if the server is running.');
+    }
     if (error.message === 'Session expired. Please login again.') {
+      throw error;
+    }
+    // Re-throw if it's already our custom error
+    if (error.message.startsWith('Network error:') || error.message.startsWith('Session expired')) {
       throw error;
     }
     throw new Error(`Network error: ${error.message}`);
@@ -105,10 +123,29 @@ async function apiRequest(endpoint, options = {}) {
  * Handle API response
  */
 async function handleResponse(response) {
-  const data = await response.json();
+  // Check if response has content
+  const contentType = response.headers.get('content-type');
+  let data;
+  
+  if (contentType && contentType.includes('application/json')) {
+    try {
+      data = await response.json();
+    } catch (error) {
+      // If JSON parsing fails, try to get text
+      const text = await response.text();
+      throw new Error(text || `Server error: ${response.status} ${response.statusText}`);
+    }
+  } else {
+    // Not JSON response - get text
+    const text = await response.text();
+    if (!response.ok) {
+      throw new Error(text || `Server error: ${response.status} ${response.statusText}`);
+    }
+    return { message: text };
+  }
   
   if (!response.ok) {
-    throw new Error(data.error || 'An error occurred');
+    throw new Error(data.error || `Server error: ${response.status} ${response.statusText}`);
   }
   
   return data;

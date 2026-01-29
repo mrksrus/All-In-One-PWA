@@ -190,6 +190,17 @@ export const authAPI = {
     method: 'POST',
     body: JSON.stringify({ code }),
   }),
+  
+  // Initial 2FA setup (for newly registered users - no auth required)
+  setup2FAInitial: (username, password) => apiRequest('/auth/2fa/setup-initial', {
+    method: 'POST',
+    body: JSON.stringify({ username, password }),
+  }),
+  
+  verify2FAInitial: (username, password, code) => apiRequest('/auth/2fa/verify-initial', {
+    method: 'POST',
+    body: JSON.stringify({ username, password, code }),
+  }),
 };
 
 // Calendar API

@@ -202,4 +202,50 @@ router.post('/2fa/verify', authenticateToken, async (req, res, next) => {
   }
 });
 
+/**
+ * POST /api/auth/2fa/setup-initial
+ * Setup 2FA for newly registered users (no auth required)
+ * Verifies username/password instead of token
+ * 
+ * Body: { username, password }
+ */
+router.post('/2fa/setup-initial', async (req, res, next) => {
+  try {
+    const { username, password } = req.body;
+    
+    if (!username || !password) {
+      return res.status(400).json({ error: 'Username and password are required' });
+    }
+    
+    const { secret, qrCode } = await authService.setup2FAInitial(username, password);
+    
+    res.json({ secret, qrCode });
+  } catch (error) {
+    res.status(401).json({ error: error.message });
+  }
+});
+
+/**
+ * POST /api/auth/2fa/verify-initial
+ * Verify and enable 2FA for newly registered users (no auth required)
+ * Verifies username/password instead of token
+ * 
+ * Body: { username, password, code }
+ */
+router.post('/2fa/verify-initial', async (req, res, next) => {
+  try {
+    const { username, password, code } = req.body;
+    
+    if (!username || !password || !code) {
+      return res.status(400).json({ error: 'Username, password, and 2FA code are required' });
+    }
+    
+    await authService.verifyAndEnable2FAInitial(username, password, code);
+    
+    res.json({ message: '2FA enabled successfully' });
+  } catch (error) {
+    res.status(400).json({ error: error.message });
+  }
+});
+
 module.exports = router;

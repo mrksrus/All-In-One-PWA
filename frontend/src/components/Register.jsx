@@ -47,8 +47,8 @@ function Register() {
         setIsAdmin(true);
       }
       
-      // Setup 2FA
-      const setup = await authAPI.setup2FA();
+      // Setup 2FA using initial endpoint (no auth required - uses username/password)
+      const setup = await authAPI.setup2FAInitial(username, password);
       setTwoFactorSetup(setup);
     } catch (err) {
       setError(err.message || 'Registration failed');
@@ -62,7 +62,8 @@ function Register() {
     setLoading(true);
 
     try {
-      await authAPI.verify2FA(twoFactorCode);
+      // Use initial verify endpoint (no auth required - uses username/password)
+      await authAPI.verify2FAInitial(username, password, twoFactorCode);
       
       // If admin, show backup screen
       if (isAdmin) {

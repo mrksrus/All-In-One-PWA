@@ -174,7 +174,7 @@ async function loginUser(username, password, twoFactorCode, deviceId) {
 }
 
 /**
- * Setup 2FA for a user
+ * Setup 2FA for a user (by userId)
  * 
  * @param {number} userId - User ID
  * @returns {Promise<Object>} - { secret, qrCode }
@@ -212,6 +212,60 @@ async function setup2FA(userId) {
         }
       );
     });
+  });
+}
+
+/**
+ * Setup 2FA for a user (by username/password - for initial setup after registration)
+ * 
+ * @param {string} username - Username or email
+ * @param {string} password - Plain text password
+ * @returns {Promise<Object>} - { secret, qrCode }
+ */
+async function setup2FAInitial(username, password) {
+  const db = getDatabase();
+  
+  return new Promise(async (resolve, reject) => {
+    // Find user by username or email
+    db.get(
+      'SELECT * FROM users WHERE (username = ? OR email = ?) AND two_factor_enabled = 0',
+      [username, username],
+      async (err, user) => {
+        if (err) {
+          reject(err);
+          return;
+        }
+        
+        if (!user) {
+          reject(new Error('User not found or 2FA already enabled'));
+          return;
+        }
+        
+        // Verify password
+        const passwordValid = await verifyPassword(password, user.password_hash);
+        if (!passwordValid) {
+          reject(new Error('Invalid username or password'));
+          return;
+        }
+        
+        // Generate 2FA secret
+        const { secret, qrCode } = await generateSecret(user.username);
+        
+        // Store secret in database (but don't enable yet)
+        db.run(
+          'UPDATE users SET two_factor_secret = ? WHERE id = ?',
+          [secret, user.id],
+          (err) => {
+            if (err) {
+              reject(err);
+              return;
+            }
+            
+            resolve({ secret, qrCode });
+          }
+        );
+      }
+    );
   });
 }
 
@@ -260,6 +314,72 @@ async function verifyAndEnable2FA(userId, code) {
         }
       );
     });
+  });
+}
+
+/**
+ * Verify and enable 2FA (by username/password - for initial setup after registration)
+ * 
+ * @param {string} username - Username or email
+ * @param {string} password - Plain text password
+ * @param {string} code - 2FA code from authenticator app
+ * @returns {Promise<boolean>} - True if verified and enabled
+ */
+async function verifyAndEnable2FAInitial(username, password, code) {
+  const db = getDatabase();
+  
+  return new Promise(async (resolve, reject) => {
+    // Find user by username or email
+    db.get(
+      'SELECT * FROM users WHERE (username = ? OR email = ?) AND two_factor_enabled = 0',
+      [username, username],
+      async (err, user) => {
+        if (err) {
+          reject(err);
+          return;
+        }
+        
+        if (!user) {
+          reject(new Error('User not found or 2FA already enabled'));
+          return;
+        }
+        
+        // Verify password
+        const passwordValid = await verifyPassword(password, user.password_hash);
+        if (!passwordValid) {
+          reject(new Error('Invalid username or password'));
+          return;
+        }
+        
+        // Check if 2FA secret exists
+        if (!user.two_factor_secret) {
+          reject(new Error('2FA secret not found. Please setup 2FA first.'));
+          return;
+        }
+        
+        // Verify code
+        const isValid = verifyToken(user.two_factor_secret, code);
+        
+        if (!isValid) {
+          reject(new Error('Invalid 2FA code'));
+          return;
+        }
+        
+        // Enable 2FA
+        db.run(
+          'UPDATE users SET two_factor_enabled = 1 WHERE id = ?',
+          [user.id],
+          (err) => {
+            if (err) {
+              reject(err);
+              return;
+            }
+            
+            resolve(true);
+          }
+        );
+      }
+    );
   });
 }
 
@@ -352,6 +472,8 @@ module.exports = {
   loginUser,
   setup2FA,
   verifyAndEnable2FA,
+  setup2FAInitial,
+  verifyAndEnable2FAInitial,
   refreshAccessToken,
   logout,
 };

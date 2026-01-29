@@ -49,7 +49,8 @@ app.use('/api/mail', mailRoutes);
 
 // Serve static files from the React app (if public directory exists)
 // This allows the same server to serve both API and frontend
-const publicPath = path.join(__dirname, '../../public');
+// __dirname is /app/src, so ../public gives us /app/public
+const publicPath = path.join(__dirname, '../public');
 const fs = require('fs');
 
 // Debug logging

@@ -63,7 +63,10 @@ function Register() {
 
     try {
       // Use initial verify endpoint (no auth required - uses username/password)
-      await authAPI.verify2FAInitial(username, password, twoFactorCode);
+      const result = await authAPI.verify2FAInitial(username, password, twoFactorCode);
+      
+      // Reset loading state before navigation/state change
+      setLoading(false);
       
       // If admin, show backup screen
       if (isAdmin) {
@@ -72,6 +75,7 @@ function Register() {
         navigate('/login');
       }
     } catch (err) {
+      console.error('2FA verification error:', err);
       setError(err.message || '2FA verification failed');
       setLoading(false);
     }

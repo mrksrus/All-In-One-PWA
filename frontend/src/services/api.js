@@ -79,7 +79,16 @@ async function apiRequest(endpoint, options = {}) {
   }
   
   try {
-    const response = await fetch(url, config);
+    // Add timeout to prevent hanging requests (30 seconds)
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 30000);
+    
+    const response = await fetch(url, {
+      ...config,
+      signal: controller.signal,
+    });
+    
+    clearTimeout(timeoutId);
     
     // Handle 401 (unauthorized) - try to refresh token
     if (response.status === 401 && refreshToken && endpoint !== '/auth/refresh' && endpoint !== '/auth/refresh-initial') {
@@ -88,7 +97,14 @@ async function apiRequest(endpoint, options = {}) {
         if (newTokens) {
           // Retry original request with new token
           headers['Authorization'] = `Bearer ${newTokens.accessToken}`;
-          const retryResponse = await fetch(url, { ...config, headers });
+          const retryController = new AbortController();
+          const retryTimeoutId = setTimeout(() => retryController.abort(), 30000);
+          const retryResponse = await fetch(url, { 
+            ...config, 
+            headers,
+            signal: retryController.signal,
+          });
+          clearTimeout(retryTimeoutId);
           return await handleResponse(retryResponse);
         }
       } catch (error) {
@@ -104,6 +120,10 @@ async function apiRequest(endpoint, options = {}) {
     
     return await handleResponse(response);
   } catch (error) {
+    // Handle abort (timeout)
+    if (error.name === 'AbortError') {
+      throw new Error('Request timeout: The server took too long to respond. Please try again.');
+    }
     // Handle network errors (CORS, connection refused, etc.)
     if (error.name === 'TypeError' && error.message.includes('fetch')) {
       throw new Error('Network error: Unable to connect to server. Please check if the server is running.');
@@ -112,7 +132,7 @@ async function apiRequest(endpoint, options = {}) {
       throw error;
     }
     // Re-throw if it's already our custom error
-    if (error.message.startsWith('Network error:') || error.message.startsWith('Session expired')) {
+    if (error.message.startsWith('Network error:') || error.message.startsWith('Session expired') || error.message.startsWith('Request timeout')) {
       throw error;
     }
     throw new Error(`Network error: ${error.message}`);

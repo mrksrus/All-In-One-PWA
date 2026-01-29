@@ -240,11 +240,17 @@ router.post('/2fa/verify-initial', async (req, res, next) => {
       return res.status(400).json({ error: 'Username, password, and 2FA code are required' });
     }
     
+    // Validate code format (should be 6 digits)
+    if (!/^\d{6}$/.test(code)) {
+      return res.status(400).json({ error: '2FA code must be 6 digits' });
+    }
+    
     await authService.verifyAndEnable2FAInitial(username, password, code);
     
     res.json({ message: '2FA enabled successfully' });
   } catch (error) {
-    res.status(400).json({ error: error.message });
+    console.error('2FA verify-initial error:', error);
+    res.status(400).json({ error: error.message || '2FA verification failed' });
   }
 });
 

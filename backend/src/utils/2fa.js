@@ -45,15 +45,18 @@ async function generateSecret(username, serviceName = 'All-in-One PWA') {
  * @returns {boolean} - True if code is valid
  */
 function verifyToken(secret, token) {
-  // speakeasy.totp.verify() checks if the code is correct
+  // speakeasy.totp.verify() returns an object with 'delta' property if valid, null if invalid
   // window: 2 means codes valid 2 time steps before/after current time
   // This accounts for clock drift between devices
-  return speakeasy.totp.verify({
+  const result = speakeasy.totp.verify({
     secret: secret,
     encoding: 'base32',
     token: token,
     window: 2,  // Allow codes from ±2 time steps (60 seconds each)
   });
+  
+  // Return true if result is truthy (object with delta), false if null/undefined
+  return !!result;
 }
 
 module.exports = {

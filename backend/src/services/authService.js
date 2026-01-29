@@ -357,11 +357,23 @@ async function verifyAndEnable2FAInitial(username, password, code) {
           return;
         }
         
-        // Verify code
-        const isValid = verifyToken(user.two_factor_secret, code);
+        // Verify code format first
+        if (!code || typeof code !== 'string' || !/^\d{6}$/.test(code)) {
+          reject(new Error('2FA code must be 6 digits'));
+          return;
+        }
         
-        if (!isValid) {
-          reject(new Error('Invalid 2FA code'));
+        // Verify code
+        try {
+          const isValid = verifyToken(user.two_factor_secret, code);
+          
+          if (!isValid) {
+            reject(new Error('Invalid 2FA code. Please check your authenticator app and try again.'));
+            return;
+          }
+        } catch (verifyError) {
+          console.error('Error verifying 2FA code:', verifyError);
+          reject(new Error('Error verifying 2FA code. Please try again.'));
           return;
         }
         
@@ -371,10 +383,12 @@ async function verifyAndEnable2FAInitial(username, password, code) {
           [user.id],
           (err) => {
             if (err) {
+              console.error('Error enabling 2FA:', err);
               reject(err);
               return;
             }
             
+            console.log(`2FA enabled successfully for user ${user.id}`);
             resolve(true);
           }
         );

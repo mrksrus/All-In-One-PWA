@@ -2,6 +2,7 @@ version: '3.8'
 
 # Single-container setup using root Dockerfile
 # This runs both frontend and backend in one container
+# Frontend is served as static files by the Express backend - no inter-container communication needed
 services:
   app:
     build:
@@ -9,19 +10,22 @@ services:
       dockerfile: Dockerfile
     container_name: all-in-one-pwa
     ports:
-      # Format: "HOST_PORT:CONTAINER_PORT"
-      # Change APP_HOST_PORT in .env file to change the host port
+      # Format: "EXTERNAL_PORT:CONTAINER_PORT"
+      # Change APP_HOST_PORT in .env file to change the external port
+      # Keep APP_CONTAINER_PORT as 3000 (internal container port)
       - "${APP_HOST_PORT:-3000}:${APP_CONTAINER_PORT:-3000}"
     environment:
       - NODE_ENV=production
-      # App container port - change APP_CONTAINER_PORT in .env if needed
+      # Container internal port - MUST match APP_CONTAINER_PORT in ports mapping above
+      # This is the port the app listens on INSIDE the container
       - PORT=${APP_CONTAINER_PORT:-3000}
+      - DB_PATH=/data/database.sqlite
+      # CORS origin - use * to allow all origins, or set specific URL
+      - CORS_ORIGIN=${CORS_ORIGIN:-*}
       # Secrets are auto-generated on first run and stored in /data/secrets.env
       # Can be overridden with environment variables if needed
       - JWT_SECRET=${JWT_SECRET:-}
       - JWT_REFRESH_SECRET=${JWT_REFRESH_SECRET:-}
-      - DB_PATH=/data/database.sqlite
-      - CORS_ORIGIN=${CORS_ORIGIN:-http://localhost}
       - ENCRYPTION_KEY=${ENCRYPTION_KEY:-}
     volumes:
       # Persistent volume for all data (database, secrets, future: email attachments, uploads)

@@ -14,11 +14,11 @@ data/
 *.sqlite3
 
 # Secrets (NEVER commit these!)
+# Ignore secret data files (secrets.env, etc.)
 **/secrets.env
-# Ignore secret data files, but allow secrets.js (the utility code file)
 **/data/secrets*
-**/*.secrets
-!backend/src/utils/secrets.js
+# Allow secrets.js utility file (it's code, not actual secrets)
+!**/secrets.js
 
 # Build outputs
 dist/

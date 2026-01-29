@@ -9,7 +9,7 @@
  */
 
 require('dotenv').config();
-const { getOrGenerateSecrets } = require('../utils/secrets.js');
+const { getOrGenerateSecrets } = require('../utils/secrets');
 
 // Get or generate secrets (auto-generated on first run)
 const secrets = getOrGenerateSecrets();

@@ -1,7 +1,10 @@
 # TrueNAS Scale Custom App Configuration
 # Use this YAML in the "Custom App" wizard or paste into the YAML editor
 # This is a simplified version for TrueNAS Scale's Docker-based app system
-
+#
+# IMPORTANT: Change the port mapping below to your desired external port
+# Format: "EXTERNAL_PORT:3000" where 3000 is the internal container port
+# Example: "18988:3000" means access via port 18988, container listens on 3000
 
 services:
   all-in-one-pwa:
@@ -9,17 +12,22 @@ services:
     container_name: all-in-one-pwa
     restart: unless-stopped
     ports:
-      - "18988:3000"  # Change the first number (host port) if needed
+      # Format: "EXTERNAL_PORT:CONTAINER_PORT"
+      # Change EXTERNAL_PORT (first number) to any port you want
+      # Keep CONTAINER_PORT (second number) as 3000 - this is internal
+      - "18988:3000"
     environment:
       - NODE_ENV=production
+      # Container internal port - MUST match the second number in ports mapping above
       - PORT=3000
       - DB_PATH=/data/database.sqlite
-      - CORS_ORIGIN=*  # Update to your TrueNAS Scale IP/domain
+      # CORS: Use * to allow all origins, or set specific URL like http://your-ip:18988
+      - CORS_ORIGIN=*
       # Secrets are auto-generated on first run, but you can set them here:
       # - JWT_SECRET=your-secret-here
       # - JWT_REFRESH_SECRET=your-refresh-secret-here
       # - ENCRYPTION_KEY=your-encryption-key-here
     volumes:
+      # Replace /mnt/your-pool/app-data/all-in-one-pwa with your actual TrueNAS dataset path
+      # Docker will create the directory automatically if it doesn't exist
       - /mnt/your-pool/app-data/all-in-one-pwa:/data
-      # Replace /mnt/your-pool/app-data/all-in-one-pwa with your actual dataset path
-      # Example: /mnt/pool1/apps/all-in-one-pwa:/data
